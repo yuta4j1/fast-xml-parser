@@ -358,6 +358,55 @@ describe("XMLParser", function() {
         expect(result).toEqual(expected);
     });
 
+    it("should parse to comment with default option", function() {
+        const jObj = {
+            root: {
+                element: {
+                    "#text": "aaa"
+                },
+                "__comment": "This is a simple comment"
+            }
+        }
+        const parser = new Parser();
+        const result = parser.parse(jObj);
+        const expected = '<root><element>aaa</element><!-- This is a simple comment --></root>';
+        expect(result).toEqual(expected);
+    });
+
+    it("should parse to comment with custom option", function() {
+        const jObj = {
+            root: {
+                element: {
+                    "#text": "aaa"
+                },
+                "@comment": "This is a \"simple\" comment"
+            }
+        }
+        const parser = new Parser({
+            commentTagName: "@comment"
+        });
+        const expected = '<root><element>aaa</element><!-- This is a "simple" comment --></root>';
+        const result = parser.parse(jObj);
+        expect(result).toEqual(expected);
+    });
+    
+    it("should encode HTML char when parsing to comment", function() {
+        const jObj = {
+            root: {
+                element: {
+                    "#text": "aaa"
+                },
+                "__comment": "a < b, c > d"
+            }
+        }
+        const parser = new Parser({
+            encodeHTMLchar: true,
+            tagValueProcessor: a=> { a= ''+ a; return he.encode(a, { useNamedReferences: true}) },
+        });
+        const expected = '<root><element>aaa</element><!-- a &lt; b, c &gt; d --></root>';
+        const result = parser.parse(jObj);
+        expect(result).toEqual(expected);
+    });
 
     it("should format when parsing to XML", function() {
         const jObj = {
