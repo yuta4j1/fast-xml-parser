@@ -7,6 +7,7 @@ const defaultOptions = {
   attrNodeName: false,
   textNodeName: '#text',
   ignoreAttributes: true,
+  commentTagName: '__comment',
   cdataTagName: false,
   cdataPositionChar: '\\c',
   format: false,
@@ -26,6 +27,7 @@ const props = [
   'textNodeName',
   'ignoreAttributes',
   'cdataTagName',
+  'commentTagName',
   'cdataPositionChar',
   'format',
   'indentBy',
@@ -53,6 +55,15 @@ function Parser(options) {
   }
   this.replaceCDATAstr = replaceCDATAstr;
   this.replaceCDATAarr = replaceCDATAarr;
+
+  if (this.options.commentTagName) {
+    this.isComment = isComment;
+  } else {
+    this.isComment = function(/*a*/) {
+      return false;
+    };
+  }
+  this.buildCommentNode = buildCommentNode;
 
   if (this.options.format) {
     this.indentate = indentate;
@@ -106,6 +117,8 @@ Parser.prototype.j2x = function(jObj, level) {
         } else {
           val += this.replaceCDATAstr('', jObj[key]);
         }
+      } else if (this.isComment(key)) {
+        val += this.buildCommentNode(jObj[key], level);
       } else {
         //tag value
         if (key === this.options.textNodeName) {
@@ -214,6 +227,16 @@ function buildObjectNode(val, key, attrStr, level) {
   }
 }
 
+function buildCommentNode(val, level) {
+  return (
+    this.indentate(level) + 
+    '<!-- ' + 
+    this.options.tagValueProcessor(val) + 
+    ' --' + 
+    this.tagEndChar
+  );
+}
+
 function buildEmptyObjNode(val, key, attrStr, level) {
   if (val !== '') {
     return this.buildObjectNode(val, key, attrStr, level);
@@ -259,6 +282,10 @@ function isAttribute(name /*, options*/) {
 
 function isCDATA(name) {
   return name === this.options.cdataTagName;
+}
+
+function isComment(name) {
+  return name === this.options.commentTagName;
 }
 
 //formatting

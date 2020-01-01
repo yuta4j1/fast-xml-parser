@@ -30,6 +30,7 @@ type J2xOptions = {
   ignoreAttributes: boolean;
   cdataTagName: false | string;
   cdataPositionChar: string;
+  commentTagName: string;
   format: boolean;
   indentBy: string;
   supressEmptyNode: boolean;
